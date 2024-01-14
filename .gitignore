@@ -1,0 +1,8 @@
+/node_modules/*
+
+# compiled code 
+/out/*
+
+# vscode 
+/.vscode
+/.vscode-test
