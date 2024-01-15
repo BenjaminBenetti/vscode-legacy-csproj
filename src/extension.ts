@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import FileCreatedListener from "./event/listener/file-created-listener";
 import { logger } from "./logger";
 import FileDeleteListener from "./event/listener/file-delete-listener";
+import FileRenameListener from "./event/listener/file-rename-listener";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -15,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
   // === event listeners ===
   new FileCreatedListener(context).bind();
   new FileDeleteListener(context).bind();
+  new FileRenameListener(context).bind();
 
   logger.info("boot-up complete");
 }

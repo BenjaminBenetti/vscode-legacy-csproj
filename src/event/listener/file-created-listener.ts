@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import AbstractEventListener from "./abstract-event-listener";
 import CsprojService from "../../csproj/csproj-service";
+import { logger } from "../../logger";
 
 export default class FileCreatedListener extends AbstractEventListener {
   // ========================================================
@@ -17,7 +18,7 @@ export default class FileCreatedListener extends AbstractEventListener {
           if (
             (await vscode.workspace.fs.stat(file)).type === vscode.FileType.File
           ) {
-            csprojService.addFileToCsproj(file.fsPath);
+            await csprojService.addFileToCsproj(file.fsPath);
           }
         }
       },
@@ -25,6 +26,8 @@ export default class FileCreatedListener extends AbstractEventListener {
 
     // auto cleanup when extension is deactivated
     this.extensionContext.subscriptions.push(this.disposable);
+
+    logger.info("File created listener bound");
   }
 
   // stop listening for events

@@ -4,23 +4,23 @@ import AbstractEventListener from "./abstract-event-listener";
 import * as vscode from "vscode";
 import { logger } from "../../logger";
 
-export default class FileDeleteListener extends AbstractEventListener {
+export default class FileRenameListener extends AbstractEventListener {
   // ========================================================
   // public methods
   // ========================================================
 
   // listen for events
   public bind(): void {
-    this.disposable = vscode.workspace.onWillDeleteFiles(
-      async (fileDeleteEvent: vscode.FileWillDeleteEvent) => {
-        fileDeleteEvent.waitUntil(this.recursiveRemove(fileDeleteEvent.files));
+    this.disposable = vscode.workspace.onWillRenameFiles(
+      async (fileRenameEvent: vscode.FileWillRenameEvent) => {
+        fileRenameEvent.waitUntil(this.recursiveRename(fileRenameEvent.files));
       },
     );
 
     // auto cleanup when extension is deactivated
     this.extensionContext.subscriptions.push(this.disposable);
 
-    logger.info("File delete listener bound");
+    logger.info("File rename listener bound");
   }
 
   // stop listening for events
@@ -32,17 +32,23 @@ export default class FileDeleteListener extends AbstractEventListener {
   // private methods
   // ========================================================
 
-  private async recursiveRemove(files: readonly vscode.Uri[]): Promise<void> {
+  private async recursiveRename(
+    files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
+  ): Promise<void> {
     for (const file of files) {
-      const fileStat = await vscode.workspace.fs.stat(file);
+      const fileStat = await vscode.workspace.fs.stat(file.oldUri);
 
       if (fileStat.type === vscode.FileType.File) {
-        await new CsprojService().removeFileFromCsproj(file.fsPath);
+        await new CsprojService().removeFileFromCsproj(file.oldUri.fsPath);
+        await new CsprojService().addFileToCsproj(file.newUri.fsPath);
       } else if (fileStat.type === vscode.FileType.Directory) {
-        const files = await vscode.workspace.fs.readDirectory(file);
+        const files = await vscode.workspace.fs.readDirectory(file.oldUri);
 
-        await this.recursiveRemove(
-          files.map((fl) => vscode.Uri.parse(path.join(file.fsPath, fl[0]))),
+        await this.recursiveRename(
+          files.map((fl) => ({
+            oldUri: vscode.Uri.parse(path.join(file.oldUri.fsPath, fl[0])),
+            newUri: vscode.Uri.parse(path.join(file.newUri.fsPath, fl[0])),
+          })),
         );
       }
     }

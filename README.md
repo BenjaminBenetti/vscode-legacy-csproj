@@ -9,8 +9,8 @@ This vscode extension automatically keeps your legacy csproj (non sdk project) u
 
 - When adding files the csproj will automatically be updated.
 - When deleting files or directories the csproj will automatically be updated.
-- `TODO` When renaming files the csproj will automatically be updated.
-- `TODO` When moving files the csproj will automatically be updated.
+- When renaming files the csproj will automatically be updated.
+- When moving files the csproj will automatically be updated.
 
 # Development
 
