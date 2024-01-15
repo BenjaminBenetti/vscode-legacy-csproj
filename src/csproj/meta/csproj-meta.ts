@@ -7,7 +7,7 @@ export default class CsprojMeta {
 
   public constructor(
     private readonly _toolVersion: string,
-    private readonly _sdk: string,
+    private readonly _sdk: string | null,
     private readonly _targetFramework: string,
     private readonly _includes: CsprojInclude[],
   ) {}
@@ -20,7 +20,7 @@ export default class CsprojMeta {
     return this._toolVersion;
   }
 
-  public get sdk(): string {
+  public get sdk(): string | null {
     return this._sdk;
   }
 
