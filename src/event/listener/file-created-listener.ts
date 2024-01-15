@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import AbstractEventListener from "./abstract-event-listener";
+import CsprojService from "../../csproj/csproj-service";
 
 export default class FileCreatedListener extends AbstractEventListener {
   // ========================================================
@@ -10,13 +11,11 @@ export default class FileCreatedListener extends AbstractEventListener {
   public bind(): void {
     this.disposable = vscode.workspace.onDidCreateFiles(
       (fileEvent: vscode.FileCreateEvent) => {
-        let msg = "";
+        const csprojService = new CsprojService();
 
         for (const file of fileEvent.files) {
-          msg += file.path + "\n";
+          csprojService.addFileToCsproj(file.fsPath);
         }
-
-        vscode.window.showInformationMessage(msg);
       },
     );
 
