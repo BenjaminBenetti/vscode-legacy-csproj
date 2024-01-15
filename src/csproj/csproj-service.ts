@@ -43,6 +43,34 @@ export default class CsprojService {
   }
 
   /**
+   * Remove the given file from the csproj file on disk
+   * @param filePath - the path of the file to remove
+   */
+  public async removeFileFromCsproj(filePath: string): Promise<void> {
+    const workspaceService = new WorkspaceService();
+    const csprojWriter = new CsprojWriter();
+    const csprojIncludeTypeService = new CsprojIncludeTypeService();
+
+    const workspace = workspaceService.getWorkspacePathForFile(filePath);
+    const csproj = await this.findNearestCsproj(filePath);
+
+    if (csproj && workspace) {
+      if (!(await this.isSdkStyleProject(csproj))) {
+        logger.info(`Removing ${filePath} from ${csproj}`);
+        await csprojWriter.deleteIncludeFromCsproj(
+          new CsprojInclude(
+            path.relative(workspace, filePath),
+            csprojIncludeTypeService.getIncludeTypeForFile(filePath),
+          ),
+          csproj,
+        );
+      } else {
+        logger.warn("SDK style project detected. Not removing file");
+      }
+    }
+  }
+
+  /**
    * Find the nearest csproj to the given file
    * @param filePath - the path to the file
    * @returns - the path to the nearest csproj if found, null otherwise

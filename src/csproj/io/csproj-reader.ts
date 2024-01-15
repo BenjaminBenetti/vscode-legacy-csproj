@@ -14,16 +14,27 @@ export default class CsprojReader {
    * @returns - the csproj metadata
    */
   public async readCsproj(csprojPath: string): Promise<CsprojMeta> {
-    const rawCsproj = await workspace.fs.readFile(Uri.parse(csprojPath));
+    const csproj = await this.loadCsprojRaw(csprojPath);
+
+    return new CsprojRawToCsprojMetaConverter().convert(csproj);
+  }
+
+  /**
+   * Load the raw csproj xml from disk
+   * @param csprojPath
+   * @returns
+   */
+  public async loadCsprojRaw(csprojPath: string): Promise<any> {
     const xmlParser = new XMLParser({
+      attributeNamePrefix: "@_",
+      commentPropName: "#comment",
       parseAttributeValue: true,
       ignoreAttributes: false,
-      attributeNamePrefix: "@_",
       preserveOrder: true,
     });
 
-    const csproj = xmlParser.parse(rawCsproj.toString());
-
-    return new CsprojRawToCsprojMetaConverter().convert(csproj);
+    return xmlParser.parse(
+      (await workspace.fs.readFile(Uri.parse(csprojPath))).toString(),
+    );
   }
 }

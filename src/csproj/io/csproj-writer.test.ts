@@ -73,7 +73,7 @@ suite("csproj-writer", () => {
                 ":@": {
                   "@_Include": "foo.cshtml",
                 },
-                Compile: [],
+                Content: [],
               },
             ],
           },
@@ -211,6 +211,96 @@ suite("csproj-writer", () => {
       csproj[0].Project[1].ItemGroup[1][":@"]["@_Include"],
       "o-ya.cshtml",
       "new item should be added to the end of the biggest group",
+    );
+  });
+
+  test("removeInsertFromCsproj one item", () => {
+    const csprojWriter = new CsprojWriter();
+
+    const csproj = [
+      {
+        ":@": {},
+        Project: [
+          {
+            ItemGroup: [
+              {
+                ":@": {
+                  "@_Include": "foo.cshtml",
+                },
+                Content: [],
+              },
+            ],
+          },
+          { ItemGroup: [] },
+        ],
+      },
+    ];
+
+    csprojWriter.removeInsertFromCsproj(
+      new CsprojInclude("foo.cshtml", CsprojIncludeType.Content),
+      csproj,
+    );
+
+    assert.equal(
+      csproj[0].Project[0].ItemGroup.length,
+      0,
+      "should delete item",
+    );
+  });
+
+  test("removeInsertFromCsproj one item", () => {
+    const csprojWriter = new CsprojWriter();
+
+    const csproj = [
+      {
+        ":@": {},
+        Project: [
+          {
+            ItemGroup: [
+              {
+                ":@": {
+                  "@_Include": "foo.cshtml",
+                },
+                Content: [],
+              },
+              {
+                ":@": {
+                  "@_Include": "bar.cs",
+                },
+                Compile: [],
+              },
+              {
+                ":@": {
+                  "@_Include": "baz.cs",
+                },
+                Compile: [],
+              },
+            ],
+          },
+          { ItemGroup: [] },
+        ],
+      },
+    ];
+
+    csprojWriter.removeInsertFromCsproj(
+      new CsprojInclude("bar.cs", CsprojIncludeType.Compile),
+      csproj,
+    );
+
+    assert.equal(
+      csproj[0].Project[0].ItemGroup.length,
+      2,
+      "should delete item",
+    );
+    assert.equal(
+      csproj[0].Project[0].ItemGroup[0][":@"]["@_Include"],
+      "foo.cshtml",
+      "should not delete the wrong item",
+    );
+    assert.equal(
+      csproj[0].Project[0].ItemGroup[1][":@"]["@_Include"],
+      "baz.cs",
+      "should not delete the wrong item",
     );
   });
 });
