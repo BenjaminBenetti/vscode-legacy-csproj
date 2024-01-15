@@ -5,6 +5,7 @@ import WorkspaceService from "../workspace/workspace-service";
 import CsprojWriter from "./io/csproj-writer";
 import CsprojIncludeTypeService from "./meta/csproj-include-type-service";
 import { logger } from "../logger";
+import CsprojReader from "./io/csproj-reader";
 
 export default class CsprojService {
   // ========================================================
@@ -24,16 +25,20 @@ export default class CsprojService {
     const csproj = await this.findNearestCsproj(filePath);
 
     if (csproj && workspace) {
-      logger.info(
-        `Adding ${filePath} to ${csproj} as type ${csprojIncludeTypeService.getIncludeTypeForFile(filePath)}`,
-      );
-      await csprojWriter.writeIncludeToCsproj(
-        new CsprojInclude(
-          path.relative(workspace, filePath),
-          csprojIncludeTypeService.getIncludeTypeForFile(filePath),
-        ),
-        csproj,
-      );
+      if (!(await this.isSdkStyleProject(csproj))) {
+        logger.info(
+          `Adding ${filePath} to ${csproj} as type ${csprojIncludeTypeService.getIncludeTypeForFile(filePath)}`,
+        );
+        await csprojWriter.writeIncludeToCsproj(
+          new CsprojInclude(
+            path.relative(workspace, filePath),
+            csprojIncludeTypeService.getIncludeTypeForFile(filePath),
+          ),
+          csproj,
+        );
+      } else {
+        logger.warn("SDK style project detected. Not adding file.");
+      }
     }
   }
 
@@ -54,5 +59,16 @@ export default class CsprojService {
       );
     }
     return null;
+  }
+
+  /**
+   * Check if the given csproj is an SDK style project
+   * @param csprojPath - the path to the csproj
+   * @returns - true if the csproj is an SDK style project, false otherwise
+   */
+  public async isSdkStyleProject(csprojPath: string): Promise<boolean> {
+    const csprojReader = new CsprojReader();
+    const projectMeta = await csprojReader.readCsproj(csprojPath);
+    return projectMeta.sdk !== null;
   }
 }
