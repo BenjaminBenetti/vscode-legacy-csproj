@@ -1,8 +1,9 @@
 {
   "name": "vscode-legacy-csproj",
   "displayName": "Legacy csproj",
-  "description": "Automatically add and remove includes in you're legacy csproj file as you create / delete files.",
+  "description": "Automatically keeps legacy csproj files up to date as you add and remove files from your project.",
   "version": "1.0.0",
+  "publisher": "CanadianCommander",
   "repository": {
     "type": "git",
     "url": "https://github.com/CanadianCommander/vscode-legacy-csproj"
