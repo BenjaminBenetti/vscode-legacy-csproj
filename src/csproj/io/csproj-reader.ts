@@ -8,6 +8,11 @@ export default class CsprojReader {
   // public methods
   // ========================================================
 
+  /**
+   * read the given csproj
+   * @param csprojPath - the path to the csproj
+   * @returns - the csproj metadata
+   */
   public async readCsproj(csprojPath: string): Promise<CsprojMeta> {
     const rawCsproj = await workspace.fs.readFile(Uri.parse(csprojPath));
     const xmlParser = new XMLParser({

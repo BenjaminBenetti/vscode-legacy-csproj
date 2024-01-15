@@ -1,4 +1,4 @@
 export enum CsprojIncludeType {
-  Compile,
-  Content,
+  Compile = "Compile",
+  Content = "Content",
 }

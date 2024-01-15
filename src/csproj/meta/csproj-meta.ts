@@ -12,6 +12,17 @@ export default class CsprojMeta {
     private readonly _includes: CsprojInclude[],
   ) {}
 
+  /**
+   * check if the csproj contains the given include
+   * @param include - the include to look for
+   * @returns - true / false if the include is found in the csproj
+   */
+  public containsInclude(include: CsprojInclude): boolean {
+    return this._includes.some(
+      (inc) => inc.include === include.include && inc.type === include.type,
+    );
+  }
+
   // ========================================================
   // getters
   // ========================================================
