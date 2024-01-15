@@ -12,9 +12,10 @@ export default class CsprojRawToCsprojMetaConverter
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public convert(csproj: any): CsprojMeta {
+    const projectTag = csproj.find((item: any) => !!(item as any).Project);
     return new CsprojMeta(
-      csproj.Project["@_ToolsVersion"],
-      csproj.Project["@_Sdk"] ?? null,
+      projectTag[":@"]["@_ToolsVersion"],
+      projectTag[":@"]["@_Sdk"] ?? null,
       this.getTargetFrameworkVersion(csproj),
       new CsprojRawToIncludesConverter().convert(csproj),
     );
@@ -26,9 +27,17 @@ export default class CsprojRawToCsprojMetaConverter
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getTargetFrameworkVersion(csproj: any): string {
-    for (const propertyGroup of csproj.Project.PropertyGroup) {
-      if (propertyGroup.TargetFrameworkVersion) {
-        return propertyGroup.TargetFrameworkVersion;
+    const projectTag = csproj.find((item: any) => !!(item as any).Project);
+
+    for (const propertyGroup of projectTag.Project.filter(
+      (item: any) => !!item.PropertyGroup,
+    )) {
+      const targetFrameworkTag = propertyGroup.PropertyGroup.find(
+        (item: any) => !!item.TargetFrameworkVersion,
+      );
+
+      if (targetFrameworkTag) {
+        return targetFrameworkTag.TargetFrameworkVersion[0]["#text"];
       }
     }
     return "";

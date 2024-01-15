@@ -14,44 +14,29 @@ export default class CsprojRawToIncludesConverter
   public convert(csproj: any): CsprojInclude[] {
     const includes: CsprojInclude[] = [];
 
-    if (csproj.Project.ItemGroup) {
-      for (const itemGroup of csproj.Project.ItemGroup) {
-        // parse compiles
-        if (itemGroup.Compile instanceof Array) {
-          for (const compile of itemGroup.Compile) {
+    for (const projectItem of csproj.find((item: any) => !!item.Project)
+      .Project) {
+      if (projectItem.ItemGroup) {
+        for (const itemGroupItem of projectItem.ItemGroup) {
+          if (itemGroupItem.Compile) {
+            // compile includes
             includes.push(
               new CsprojInclude(
-                compile["@_Include"],
+                itemGroupItem[":@"]["@_Include"],
                 CsprojIncludeType.Compile,
               ),
             );
           }
-        } else if (itemGroup.Compile) {
-          includes.push(
-            new CsprojInclude(
-              itemGroup.Compile["@_Include"],
-              CsprojIncludeType.Compile,
-            ),
-          );
-        }
 
-        // parse contents
-        if (itemGroup.Content instanceof Array) {
-          for (const content of itemGroup.Content) {
+          if (itemGroupItem.Content) {
+            // content includes
             includes.push(
               new CsprojInclude(
-                content["@_Include"],
+                itemGroupItem[":@"]["@_Include"],
                 CsprojIncludeType.Content,
               ),
             );
           }
-        } else if (itemGroup.Content) {
-          includes.push(
-            new CsprojInclude(
-              itemGroup.Content["@_Include"],
-              CsprojIncludeType.Content,
-            ),
-          );
         }
       }
     }

@@ -19,6 +19,7 @@ export default class CsprojReader {
       parseAttributeValue: true,
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
+      preserveOrder: true,
     });
 
     const csproj = xmlParser.parse(rawCsproj.toString());

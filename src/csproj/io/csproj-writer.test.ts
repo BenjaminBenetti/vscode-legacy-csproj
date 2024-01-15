@@ -7,26 +7,27 @@ suite("csproj-writer", () => {
   test("addInsertToCsproj compile statement", async () => {
     const csprojWriter = new CsprojWriter();
 
-    const csproj = {
-      Project: {
-        PropertyGroup: [],
-        ItemGroup: [
-          {
-            Content: [],
-            Compile: [],
-          },
-        ],
+    const csproj = [
+      {
+        ":@": {},
+        Project: [{ ItemGroup: [] }, { ItemGroup: [] }],
       },
-    };
+    ];
 
     await csprojWriter.addInsertToCsproj(
       new CsprojInclude("test.cs", CsprojIncludeType.Compile),
       csproj,
     );
 
-    assert.equal(csproj.Project.ItemGroup[0].Compile.length, 1);
     assert.equal(
-      csproj.Project.ItemGroup[0].Compile[0]["@_Include"],
+      csproj[0].Project[1].ItemGroup.filter((item) => !!(item as any).Compile)
+        .length,
+      1,
+    );
+    assert.equal(
+      csproj[0].Project[1].ItemGroup.find((item) => !!(item as any).Compile)![
+        ":@"
+      ]["@_Include"],
       "test.cs",
     );
   });
@@ -34,26 +35,27 @@ suite("csproj-writer", () => {
   test("addInsertToCsproj content statement", async () => {
     const csprojWriter = new CsprojWriter();
 
-    const csproj = {
-      Project: {
-        PropertyGroup: [],
-        ItemGroup: [
-          {
-            Content: [],
-            Compile: [],
-          },
-        ],
+    const csproj = [
+      {
+        ":@": {},
+        Project: [{ ItemGroup: [] }, { ItemGroup: [] }],
       },
-    };
+    ];
 
     await csprojWriter.addInsertToCsproj(
       new CsprojInclude("test.cshtml", CsprojIncludeType.Content),
       csproj,
     );
 
-    assert.equal(csproj.Project.ItemGroup[0].Content.length, 1);
     assert.equal(
-      csproj.Project.ItemGroup[0].Content[0]["@_Include"],
+      csproj[0].Project[1].ItemGroup.filter((item) => !!(item as any).Content)
+        .length,
+      1,
+    );
+    assert.equal(
+      csproj[0].Project[1].ItemGroup.find((item) => !!(item as any).Content)![
+        ":@"
+      ]["@_Include"],
       "test.cshtml",
     );
   });
@@ -61,21 +63,24 @@ suite("csproj-writer", () => {
   test("addInsertToCsproj should do nothing if csproj already contains include", () => {
     const csprojWriter = new CsprojWriter();
 
-    const csproj = {
-      Project: {
-        PropertyGroup: [],
-        ItemGroup: [
+    const csproj = [
+      {
+        ":@": {},
+        Project: [
           {
-            Content: [
+            ItemGroup: [
               {
-                "@_Include": "foo.cshtml",
+                ":@": {
+                  "@_Include": "foo.cshtml",
+                },
+                Compile: [],
               },
             ],
-            Compile: [],
           },
+          { ItemGroup: [] },
         ],
       },
-    };
+    ];
 
     csprojWriter.addInsertToCsproj(
       new CsprojInclude("foo.cshtml", CsprojIncludeType.Content),
@@ -83,59 +88,62 @@ suite("csproj-writer", () => {
     );
 
     assert.equal(
-      csproj.Project.ItemGroup[0].Content.length,
+      csproj[0].Project[0].ItemGroup.length,
       1,
       "should not add a new item",
     );
     assert.equal(
-      csproj.Project.ItemGroup[0].Content[0]["@_Include"],
+      csproj[0].Project[0].ItemGroup[0][":@"]["@_Include"],
       "foo.cshtml",
-      "should not modify existing items",
+      "should not change the existing item",
     );
   });
 
   test("addInsertToCsproj compile statement with multiple item groups", () => {
     const csprojWriter = new CsprojWriter();
 
-    const csproj = {
-      Project: {
-        PropertyGroup: [],
-        ItemGroup: [
+    const csproj = [
+      {
+        ":@": {},
+        Project: [
           {
-            Content: [
+            ItemGroup: [
               {
-                "@_Include": "foo.cshtml",
+                ":@": {
+                  "@_Include": "foo.cs",
+                },
+                Compile: [],
+              },
+              {
+                ":@": {
+                  "@_Include": "bar.cs",
+                },
+                Compile: [],
               },
             ],
-            Compile: [],
           },
           {
-            Content: [],
-            Compile: [
-              {
-                "@_Include": "bar.cs",
-              },
-            ],
+            ItemGroup: [],
           },
         ],
       },
-    };
+    ];
 
     csprojWriter.addInsertToCsproj(
       new CsprojInclude("test.cs", CsprojIncludeType.Compile),
       csproj,
     );
 
-    // should add to the biggest compile group (the second one)
-    assert.equal(csproj.Project.ItemGroup[0].Compile.length, 0);
-    assert.equal(csproj.Project.ItemGroup[1].Compile.length, 2);
+    // should add to the biggest compile group (the first one)
+    assert.equal(csproj[0].Project[0].ItemGroup.length, 3);
+    assert.equal(csproj[0].Project[1].ItemGroup.length, 0);
     assert.equal(
-      csproj.Project.ItemGroup[1].Compile[0]["@_Include"],
-      "bar.cs",
+      csproj[0].Project[0].ItemGroup[0][":@"]["@_Include"],
+      "foo.cs",
       "existing items should be preserved",
     );
     assert.equal(
-      csproj.Project.ItemGroup[1].Compile[1]["@_Include"],
+      csproj[0].Project[0].ItemGroup[2][":@"]["@_Include"],
       "test.cs",
       "new item should be added to the end of the biggest group",
     );
@@ -144,46 +152,64 @@ suite("csproj-writer", () => {
   test("addInsertToCsproj content statement with multiple item groups", () => {
     const csprojWriter = new CsprojWriter();
 
-    const csproj = {
-      Project: {
-        PropertyGroup: [],
-        ItemGroup: [
+    const csproj = [
+      {
+        ":@": {},
+        Project: [
           {
-            Content: [
+            ItemGroup: [
               {
-                "@_Include": "foo.cshtml",
+                ":@": {
+                  "@_Include": "foo.cs",
+                },
+                Compile: [],
+              },
+              {
+                ":@": {
+                  "@_Include": "bar.cs",
+                },
+                Compile: [],
               },
             ],
-            Compile: [],
           },
           {
-            Content: [],
-            Compile: [
+            ItemGroup: [
               {
-                "@_Include": "bar.cs",
+                ":@": {
+                  "@_Include": "baz.cshtml",
+                },
+                Content: [],
               },
             ],
           },
         ],
       },
-    };
+    ];
 
     csprojWriter.addInsertToCsproj(
-      new CsprojInclude("test.cshtml", CsprojIncludeType.Content),
+      new CsprojInclude("o-ya.cshtml", CsprojIncludeType.Content),
       csproj,
     );
 
-    // should add to the biggest content group (the first one)
-    assert.equal(csproj.Project.ItemGroup[0].Content.length, 2);
-    assert.equal(csproj.Project.ItemGroup[1].Content.length, 0);
+    // should add to the biggest content group (the second one)
     assert.equal(
-      csproj.Project.ItemGroup[0].Content[0]["@_Include"],
-      "foo.cshtml",
+      csproj[0].Project[0].ItemGroup.filter((item: any) => !!item.Content)
+        .length,
+      0,
+    );
+    assert.equal(
+      csproj[0].Project[1].ItemGroup.filter((item: any) => !!item.Content)
+        .length,
+      2,
+    );
+    assert.equal(
+      csproj[0].Project[1].ItemGroup[0][":@"]["@_Include"],
+      "baz.cshtml",
       "existing items should be preserved",
     );
     assert.equal(
-      csproj.Project.ItemGroup[0].Content[1]["@_Include"],
-      "test.cshtml",
+      csproj[0].Project[1].ItemGroup[1][":@"]["@_Include"],
+      "o-ya.cshtml",
       "new item should be added to the end of the biggest group",
     );
   });

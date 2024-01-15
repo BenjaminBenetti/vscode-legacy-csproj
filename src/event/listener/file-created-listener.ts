@@ -10,11 +10,15 @@ export default class FileCreatedListener extends AbstractEventListener {
   // listen for events
   public bind(): void {
     this.disposable = vscode.workspace.onDidCreateFiles(
-      (fileEvent: vscode.FileCreateEvent) => {
+      async (fileEvent: vscode.FileCreateEvent) => {
         const csprojService = new CsprojService();
 
         for (const file of fileEvent.files) {
-          csprojService.addFileToCsproj(file.fsPath);
+          if (
+            (await vscode.workspace.fs.stat(file)).type === vscode.FileType.File
+          ) {
+            csprojService.addFileToCsproj(file.fsPath);
+          }
         }
       },
     );

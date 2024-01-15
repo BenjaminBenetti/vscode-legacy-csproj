@@ -1,7 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import CsprojRawToCsprojMetaConverter from "../converter/csproj-raw-to-csproj-meta-converter";
 import CsprojInclude from "../meta/csproj-include";
-import { CsprojIncludeType } from "../meta/csproj-include-type";
 import { Uri, workspace } from "vscode";
 import { logger } from "../../logger";
 
@@ -21,22 +20,24 @@ export default class CsprojWriter {
     csprojPath: string,
   ) {
     const xmlParser = new XMLParser({
+      attributeNamePrefix: "@_",
+      commentPropName: "#comment",
       parseAttributeValue: true,
       ignoreAttributes: false,
-      attributeNamePrefix: "@_",
-      // preserveOrder: true,
-      // commentPropName: "#comment",
+      preserveOrder: true,
     });
     const xmlWriter = new XMLBuilder({
       attributeNamePrefix: "@_",
-      // commentPropName: "#comment",
+      commentPropName: "#comment",
       ignoreAttributes: false,
       format: true,
-      // preserveOrder: true,
+      preserveOrder: true,
     });
     const csproj = xmlParser.parse(
       (await workspace.fs.readFile(Uri.parse(csprojPath))).toString(),
     );
+
+    console.debug(csproj);
 
     this.addInsertToCsproj(include, csproj);
 
@@ -71,37 +72,38 @@ export default class CsprojWriter {
   public addInsertToCsproj(include: CsprojInclude, csproj: any): any {
     const csprojMeta = new CsprojRawToCsprojMetaConverter().convert(csproj);
 
-    // if the include already exists, do nothing
+    //if the include already exists, do nothing
     if (csprojMeta.containsInclude(include)) {
       return;
     }
 
-    let biggestItemGroup = (csproj.Project.ItemGroup as Array<any>).reduce(
-      (biggest, curr) => {
-        switch (include.type) {
-          case CsprojIncludeType.Content:
-            return (curr.Content ? curr.Content.length : 0) >
-              (biggest?.Content ? biggest.Content.length : 0)
-              ? curr
-              : biggest;
-          case CsprojIncludeType.Compile:
-            return (curr.Compile ? curr.Compile.length : 0) >
-              (biggest?.Compile ? biggest.Compile.length : 0)
-              ? curr
-              : biggest;
+    let biggestItemGroup = (csproj as Array<any>)
+      .find((item) => !!item.Project)
+      .Project.filter((projectItem: any) => !!projectItem.ItemGroup)
+      .map((projectItem: any) => projectItem.ItemGroup)
+      .reduce((biggest: any, curr: any) => {
+        if (!biggest) {
+          return curr;
+        } else {
+          const biggestSize = biggest.filter(
+            (bigItem: any) => !!bigItem[include.type],
+          ).length;
+          const currSize = curr.filter(
+            (currItem: any) => !!currItem[include.type],
+          ).length;
+          return biggestSize > currSize ? biggest : curr;
         }
-      },
-      null,
-    );
+      }, null);
 
     // if there is no item group, create one
     if (!biggestItemGroup) {
-      biggestItemGroup = { Content: [], Compile: [] };
-      csproj.Project.ItemGroup = [biggestItemGroup];
+      biggestItemGroup = [];
+      csproj.Project.push(biggestItemGroup);
     }
 
-    biggestItemGroup[include.type.toString()].push({
-      "@_Include": include.include,
+    biggestItemGroup.push({
+      ":@": { "@_Include": include.include },
+      [include.type]: [],
     });
   }
 }
