@@ -28,7 +28,6 @@ export default class CsprojReader {
     const xmlParser = new XMLParser({
       attributeNamePrefix: "@_",
       commentPropName: "#comment",
-      parseAttributeValue: true,
       ignoreAttributes: false,
       preserveOrder: true,
     });

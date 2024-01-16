@@ -19,7 +19,7 @@ suite("csproj-reader", () => {
       (include) => include.type === CsprojIncludeType.Compile,
     );
 
-    assert.strictEqual(csprojMeta.toolVersion, 12);
+    assert.strictEqual(csprojMeta.toolVersion, "12.0");
     assert.strictEqual(csprojMeta.sdk, null);
     assert.strictEqual(csprojMeta.targetFramework, "v4.5.2");
     assert.equal(
@@ -53,7 +53,7 @@ suite("csproj-reader", () => {
       (include) => include.type === CsprojIncludeType.Compile,
     );
 
-    assert.strictEqual(csprojMeta.toolVersion, 14);
+    assert.strictEqual(csprojMeta.toolVersion, "14.0");
     assert.strictEqual(csprojMeta.sdk, null);
     assert.strictEqual(csprojMeta.targetFramework, "v4.8.1");
     assert.equal(
