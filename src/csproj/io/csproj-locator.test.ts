@@ -49,6 +49,27 @@ suite("csproj-locator", () => {
     );
   });
 
+  test("findNearestCsproj sub dir that doesn't exist 3 levels", async () => {
+    const csprojLocator = new CsprojLocator();
+    const workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+
+    const result = await csprojLocator.findNearestCsproj(
+      path.join(
+        workspacePath,
+        "project-1",
+        "subdir",
+        "going-deeper",
+        "even-deeper",
+      ),
+      workspacePath,
+    );
+
+    assert.strictEqual(
+      result,
+      path.join(workspacePath, "project-1", "project-1.csproj"),
+    );
+  });
+
   test("findNearestCsproj no csproj", async () => {
     const csprojLocator = new CsprojLocator();
     const workspacePath = workspace.workspaceFolders![0].uri.fsPath;

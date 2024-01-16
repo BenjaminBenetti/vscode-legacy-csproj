@@ -15,6 +15,11 @@ export default class CsprojLocator {
     currDir: string,
     workspaceDir: string,
   ): Promise<string | null> {
+    // if the current directory doesn't exist, move up a directory
+    if (!(await this.fileExists(currDir))) {
+      return this.findNearestCsproj(path.dirname(currDir), workspaceDir);
+    }
+
     const dirFiles = await workspace.fs.readDirectory(Uri.file(currDir));
 
     for (const file of dirFiles) {
@@ -27,6 +32,19 @@ export default class CsprojLocator {
       return null;
     } else {
       return this.findNearestCsproj(path.dirname(currDir), workspaceDir);
+    }
+  }
+
+  // ========================================================
+  // private methods
+  // ========================================================
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await workspace.fs.stat(Uri.file(filePath));
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 }

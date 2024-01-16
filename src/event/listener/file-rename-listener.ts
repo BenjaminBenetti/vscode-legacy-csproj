@@ -13,7 +13,7 @@ export default class FileRenameListener extends AbstractEventListener {
   public bind(): void {
     this.disposable = vscode.workspace.onWillRenameFiles(
       async (fileRenameEvent: vscode.FileWillRenameEvent) => {
-        fileRenameEvent.waitUntil(this.recursiveRename(fileRenameEvent.files));
+        fileRenameEvent.waitUntil(this.renameFiles(fileRenameEvent.files));
       },
     );
 
@@ -32,6 +32,20 @@ export default class FileRenameListener extends AbstractEventListener {
   // private methods
   // ========================================================
 
+  /**
+   * Rename the given files in the csproj
+   * @param files - the files to rename
+   */
+  private async renameFiles(
+    files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
+  ): Promise<void> {
+    try {
+      await this.recursiveRename(files);
+    } catch (error) {
+      logger.error(`Unexpected error while renaming files ${error}`);
+    }
+  }
+
   private async recursiveRename(
     files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
   ): Promise<void> {
@@ -46,8 +60,8 @@ export default class FileRenameListener extends AbstractEventListener {
 
         await this.recursiveRename(
           files.map((fl) => ({
-            oldUri: vscode.Uri.file(path.join(file.oldUri.fsPath, fl[0])),
-            newUri: vscode.Uri.file(path.join(file.newUri.fsPath, fl[0])),
+            oldUri: vscode.Uri.parse(path.join(file.oldUri.fsPath, fl[0])),
+            newUri: vscode.Uri.parse(path.join(file.newUri.fsPath, fl[0])),
           })),
         );
       }

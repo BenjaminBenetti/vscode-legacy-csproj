@@ -14,12 +14,17 @@ export default class FileCreatedListener extends AbstractEventListener {
       async (fileEvent: vscode.FileCreateEvent) => {
         const csprojService = new CsprojService();
 
-        for (const file of fileEvent.files) {
-          if (
-            (await vscode.workspace.fs.stat(file)).type === vscode.FileType.File
-          ) {
-            await csprojService.addFileToCsproj(file.fsPath);
+        try {
+          for (const file of fileEvent.files) {
+            if (
+              (await vscode.workspace.fs.stat(file)).type ===
+              vscode.FileType.File
+            ) {
+              await csprojService.addFileToCsproj(file.fsPath);
+            }
           }
+        } catch (error) {
+          logger.error(`Unexpected error while adding files ${error}`);
         }
       },
     );

@@ -13,7 +13,7 @@ export default class FileDeleteListener extends AbstractEventListener {
   public bind(): void {
     this.disposable = vscode.workspace.onWillDeleteFiles(
       async (fileDeleteEvent: vscode.FileWillDeleteEvent) => {
-        fileDeleteEvent.waitUntil(this.recursiveRemove(fileDeleteEvent.files));
+        fileDeleteEvent.waitUntil(this.removeFiles(fileDeleteEvent.files));
       },
     );
 
@@ -31,6 +31,14 @@ export default class FileDeleteListener extends AbstractEventListener {
   // ========================================================
   // private methods
   // ========================================================
+
+  private async removeFiles(files: readonly vscode.Uri[]): Promise<void> {
+    try {
+      await this.recursiveRemove(files);
+    } catch (error) {
+      logger.error(`Unexpected error while deleting files ${error}`);
+    }
+  }
 
   private async recursiveRemove(files: readonly vscode.Uri[]): Promise<void> {
     for (const file of files) {
