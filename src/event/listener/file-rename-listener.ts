@@ -40,7 +40,9 @@ export default class FileRenameListener extends AbstractEventListener {
     files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
   ): Promise<void> {
     try {
-      await this.recursiveRename(files);
+      const csprojService = new CsprojService(true);
+      await this.recursiveRename(files, csprojService);
+      csprojService.flush();
     } catch (error) {
       logger.error(`Unexpected error while renaming files ${error}`);
     }
@@ -48,13 +50,14 @@ export default class FileRenameListener extends AbstractEventListener {
 
   private async recursiveRename(
     files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
+    csprojService: CsprojService,
   ): Promise<void> {
     for (const file of files) {
       const fileStat = await vscode.workspace.fs.stat(file.oldUri);
 
       if (fileStat.type === vscode.FileType.File) {
-        await new CsprojService().removeFileFromCsproj(file.oldUri.fsPath);
-        await new CsprojService().addFileToCsproj(file.newUri.fsPath);
+        await csprojService.removeFileFromCsproj(file.oldUri.fsPath);
+        await csprojService.addFileToCsproj(file.newUri.fsPath);
       } else if (fileStat.type === vscode.FileType.Directory) {
         const files = await vscode.workspace.fs.readDirectory(file.oldUri);
 
@@ -63,6 +66,7 @@ export default class FileRenameListener extends AbstractEventListener {
             oldUri: vscode.Uri.parse(path.join(file.oldUri.fsPath, fl[0])),
             newUri: vscode.Uri.parse(path.join(file.newUri.fsPath, fl[0])),
           })),
+          csprojService,
         );
       }
     }

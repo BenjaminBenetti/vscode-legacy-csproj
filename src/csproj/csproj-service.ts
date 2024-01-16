@@ -8,9 +8,18 @@ import { logger } from "../logger";
 import CsprojReader from "./io/csproj-reader";
 
 export default class CsprojService {
+  private _csprojWriterCache: CsprojWriter | null = null;
+  private _isSdkStyleProjectCache: boolean | null = null;
   // ========================================================
   // public methods
   // ========================================================
+
+  /**
+   * Create a new CsprojService
+   * @param _buffer - [optional default false] whether or not to buffer the csproj in memory.
+   *  You must call flush() to write the csproj to disk
+   */
+  constructor(private _buffer: boolean = false) {}
 
   /**
    * add the given file to the csproj file on disk
@@ -18,7 +27,7 @@ export default class CsprojService {
    */
   public async addFileToCsproj(filePath: string): Promise<void> {
     const workspaceService = new WorkspaceService();
-    const csprojWriter = new CsprojWriter();
+    const csprojWriter = this.getCsprojWriter();
     const csprojIncludeTypeService = new CsprojIncludeTypeService();
 
     const workspace = workspaceService.getWorkspacePathForFile(filePath);
@@ -48,7 +57,7 @@ export default class CsprojService {
    */
   public async removeFileFromCsproj(filePath: string): Promise<void> {
     const workspaceService = new WorkspaceService();
-    const csprojWriter = new CsprojWriter();
+    const csprojWriter = this.getCsprojWriter();
     const csprojIncludeTypeService = new CsprojIncludeTypeService();
 
     const workspace = workspaceService.getWorkspacePathForFile(filePath);
@@ -68,6 +77,13 @@ export default class CsprojService {
         logger.warn("SDK style project detected. Not removing file");
       }
     }
+  }
+
+  /**
+   * Flush any pending csproj changes to disk
+   */
+  public async flush(): Promise<void> {
+    await this.getCsprojWriter().flush();
   }
 
   /**
@@ -95,8 +111,33 @@ export default class CsprojService {
    * @returns - true if the csproj is an SDK style project, false otherwise
    */
   public async isSdkStyleProject(csprojPath: string): Promise<boolean> {
-    const csprojReader = new CsprojReader();
-    const projectMeta = await csprojReader.readCsproj(csprojPath);
-    return projectMeta.sdk !== null;
+    if (!this._buffer || this._isSdkStyleProjectCache === null) {
+      const csprojReader = new CsprojReader();
+      const projectMeta = await csprojReader.readCsproj(csprojPath);
+      const sdkProject = projectMeta.sdk !== null;
+      this._isSdkStyleProjectCache = sdkProject;
+      return sdkProject;
+    } else {
+      return this._isSdkStyleProjectCache;
+    }
+  }
+
+  // ========================================================
+  // private methods
+  // ========================================================
+
+  /**
+   * Get a csproj writer. Could be cached or new depending on the buffer setting
+   * @returns - a csproj writer
+   */
+  private getCsprojWriter(): CsprojWriter {
+    if (this._buffer && this._csprojWriterCache) {
+      return this._csprojWriterCache;
+    } else if (this._buffer) {
+      this._csprojWriterCache = new CsprojWriter(true);
+      return this._csprojWriterCache;
+    } else {
+      return new CsprojWriter();
+    }
   }
 }

@@ -10,9 +10,19 @@ import { LineEnding } from "../../config/line-ending";
 
 export default class CsprojWriter {
   private static readonly CSPROJ_WRITE_RETRY_TIMES: number = 8;
+
+  private _csprojCache: Map<string, any> = new Map();
+
   // ========================================================
   // public methods
   // ========================================================
+
+  /**
+   * Create a new CsprojWriter
+   * @param _buffer - [optional default false] whether or not to buffer the csproj in memory.
+   *  You must call flush() to write the csproj to disk
+   */
+  constructor(private _buffer: boolean = false) {}
 
   /**
    * Write the given include to the csproj file at the given path
@@ -23,12 +33,13 @@ export default class CsprojWriter {
     include: CsprojInclude,
     csprojPath: string,
   ) {
-    const csprojReader = new CsprojReader();
-    const csproj = await csprojReader.loadCsprojRaw(csprojPath);
+    const csproj = await this.loadCsprojRaw(csprojPath);
 
     this.addInsertToCsproj(include, csproj);
 
-    await this.writeCsprojRaw(csprojPath, csproj);
+    if (!this._buffer) {
+      await this.writeCsprojRaw(csprojPath, csproj);
+    }
   }
 
   /**
@@ -40,12 +51,23 @@ export default class CsprojWriter {
     include: CsprojInclude,
     csprojPath: string,
   ): Promise<void> {
-    const csprojReader = new CsprojReader();
-    const csproj = await csprojReader.loadCsprojRaw(csprojPath);
+    const csproj = await this.loadCsprojRaw(csprojPath);
 
     this.removeInsertFromCsproj(include, csproj);
 
-    await this.writeCsprojRaw(csprojPath, csproj);
+    if (!this._buffer) {
+      await this.writeCsprojRaw(csprojPath, csproj);
+    }
+  }
+
+  /**
+   * Flush pending csproj changes to disk
+   */
+  public async flush(): Promise<void> {
+    for (const [csprojPath, csproj] of this._csprojCache) {
+      await this.writeCsprojRaw(csprojPath, csproj);
+    }
+    this._csprojCache.clear();
   }
 
   /**
@@ -116,6 +138,22 @@ export default class CsprojWriter {
   // ========================================================
   // private methods
   // ========================================================
+
+  /**
+   * Load a raw csproj. Possibly from cache.
+   * @param csprojPath - the path to the csproj
+   * @returns - the raw csproj
+   */
+  private async loadCsprojRaw(csprojPath: string): Promise<any> {
+    if (this._csprojCache.has(csprojPath) && this._buffer) {
+      return this._csprojCache.get(csprojPath);
+    } else {
+      const csprojReader = new CsprojReader();
+      const csproj = await csprojReader.loadCsprojRaw(csprojPath);
+      this._csprojCache.set(csprojPath, csproj);
+      return csproj;
+    }
+  }
 
   /**
    * Write the given raw csproj to disk

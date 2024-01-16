@@ -34,23 +34,29 @@ export default class FileDeleteListener extends AbstractEventListener {
 
   private async removeFiles(files: readonly vscode.Uri[]): Promise<void> {
     try {
-      await this.recursiveRemove(files);
+      const csprojService = new CsprojService(true);
+      await this.recursiveRemove(files, csprojService);
+      csprojService.flush();
     } catch (error) {
       logger.error(`Unexpected error while deleting files ${error}`);
     }
   }
 
-  private async recursiveRemove(files: readonly vscode.Uri[]): Promise<void> {
+  private async recursiveRemove(
+    files: readonly vscode.Uri[],
+    csprojService: CsprojService,
+  ): Promise<void> {
     for (const file of files) {
       const fileStat = await vscode.workspace.fs.stat(file);
 
       if (fileStat.type === vscode.FileType.File) {
-        await new CsprojService().removeFileFromCsproj(file.fsPath);
+        await csprojService.removeFileFromCsproj(file.fsPath);
       } else if (fileStat.type === vscode.FileType.Directory) {
         const files = await vscode.workspace.fs.readDirectory(file);
 
         await this.recursiveRemove(
           files.map((fl) => vscode.Uri.file(path.join(file.fsPath, fl[0]))),
+          csprojService,
         );
       }
     }

@@ -12,7 +12,7 @@ export default class FileCreatedListener extends AbstractEventListener {
   public bind(): void {
     this.disposable = vscode.workspace.onDidCreateFiles(
       async (fileEvent: vscode.FileCreateEvent) => {
-        const csprojService = new CsprojService();
+        const csprojService = new CsprojService(true);
 
         try {
           for (const file of fileEvent.files) {
@@ -23,6 +23,7 @@ export default class FileCreatedListener extends AbstractEventListener {
               await csprojService.addFileToCsproj(file.fsPath);
             }
           }
+          csprojService.flush();
         } catch (error) {
           logger.error(`Unexpected error while adding files ${error}`);
         }
