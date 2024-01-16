@@ -20,7 +20,29 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": []
+    "commands": [],
+    "configuration": {
+      "title": "Legacy csproj",
+      "properties": {
+        "legacy-csproj.line-ending": {
+          "type": "string",
+          "title": "Line ending",
+          "markdownDescription": "The line ending to use when updating csproj files.",
+          "enum": [
+            "auto",
+            "crlf",
+            "lf"
+          ],
+          "default": "auto",
+          "enumDescriptions": [
+            "Use the line endings of your OS",
+            "Use Windows line endings",
+            "Use Unix line endings"
+          ],
+          "description": "Enable/disable this extension"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

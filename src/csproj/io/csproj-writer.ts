@@ -4,6 +4,9 @@ import CsprojInclude from "../meta/csproj-include";
 import { Uri, workspace } from "vscode";
 import { logger } from "../../logger";
 import CsprojReader from "./csproj-reader";
+import os from "os";
+import { ConfigKey } from "../../config/config-key";
+import { LineEnding } from "../../config/line-ending";
 
 export default class CsprojWriter {
   private static readonly CSPROJ_WRITE_RETRY_TIMES: number = 8;
@@ -132,7 +135,7 @@ export default class CsprojWriter {
       try {
         workspace.fs.writeFile(
           Uri.file(csprojPath),
-          Buffer.from(xmlWriter.build(csproj)),
+          Buffer.from(this.formatXmlLineEndings(xmlWriter.build(csproj))),
         );
         break;
       } catch (err) {
@@ -148,6 +151,30 @@ export default class CsprojWriter {
           `Failed to write to csproj after ${CsprojWriter.CSPROJ_WRITE_RETRY_TIMES} retries`,
         );
       }
+    }
+  }
+
+  /**
+   * Format the xml with the configured line endings
+   * @param xml - the xml to format
+   * @returns - the formatted xml
+   */
+  private formatXmlLineEndings(xml: string): string {
+    const lineEndings = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.LineEnding) as string;
+
+    switch (lineEndings) {
+      case LineEnding.Auto:
+        return xml.replace(/\n/g, os.EOL);
+      case LineEnding.LF:
+        return xml.replace(/\r\n/g, "\n");
+      case LineEnding.CRLF:
+        return xml.replace(/\n/g, "\r\n");
+      default:
+        throw new Error(
+          `Error parsing ${ConfigKey.LineEnding} extension setting`,
+        );
     }
   }
 }
