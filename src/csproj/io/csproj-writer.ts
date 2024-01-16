@@ -131,7 +131,7 @@ export default class CsprojWriter {
     for (let i = 0; i < CsprojWriter.CSPROJ_WRITE_RETRY_TIMES; i++) {
       try {
         workspace.fs.writeFile(
-          Uri.parse(csprojPath),
+          Uri.file(csprojPath),
           Buffer.from(xmlWriter.build(csproj)),
         );
         break;

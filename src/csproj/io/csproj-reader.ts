@@ -34,7 +34,7 @@ export default class CsprojReader {
     });
 
     return xmlParser.parse(
-      (await workspace.fs.readFile(Uri.parse(csprojPath))).toString(),
+      (await workspace.fs.readFile(Uri.file(csprojPath))).toString(),
     );
   }
 }

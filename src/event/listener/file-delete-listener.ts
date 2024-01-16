@@ -42,7 +42,7 @@ export default class FileDeleteListener extends AbstractEventListener {
         const files = await vscode.workspace.fs.readDirectory(file);
 
         await this.recursiveRemove(
-          files.map((fl) => vscode.Uri.parse(path.join(file.fsPath, fl[0]))),
+          files.map((fl) => vscode.Uri.file(path.join(file.fsPath, fl[0]))),
         );
       }
     }

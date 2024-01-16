@@ -31,7 +31,7 @@ export default class CsprojService {
         );
         await csprojWriter.writeIncludeToCsproj(
           new CsprojInclude(
-            path.relative(workspace, filePath),
+            path.relative(path.dirname(csproj), filePath),
             csprojIncludeTypeService.getIncludeTypeForFile(filePath),
           ),
           csproj,
@@ -59,7 +59,7 @@ export default class CsprojService {
         logger.info(`Removing ${filePath} from ${csproj}`);
         await csprojWriter.deleteIncludeFromCsproj(
           new CsprojInclude(
-            path.relative(workspace, filePath),
+            path.relative(path.dirname(csproj), filePath),
             csprojIncludeTypeService.getIncludeTypeForFile(filePath),
           ),
           csproj,

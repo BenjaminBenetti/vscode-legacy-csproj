@@ -15,7 +15,7 @@ export default class CsprojLocator {
     currDir: string,
     workspaceDir: string,
   ): Promise<string | null> {
-    const dirFiles = await workspace.fs.readDirectory(Uri.parse(currDir));
+    const dirFiles = await workspace.fs.readDirectory(Uri.file(currDir));
 
     for (const file of dirFiles) {
       if (file[1] === FileType.File && file[0].endsWith(".csproj")) {

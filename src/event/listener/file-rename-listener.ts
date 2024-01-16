@@ -46,8 +46,8 @@ export default class FileRenameListener extends AbstractEventListener {
 
         await this.recursiveRename(
           files.map((fl) => ({
-            oldUri: vscode.Uri.parse(path.join(file.oldUri.fsPath, fl[0])),
-            newUri: vscode.Uri.parse(path.join(file.newUri.fsPath, fl[0])),
+            oldUri: vscode.Uri.file(path.join(file.oldUri.fsPath, fl[0])),
+            newUri: vscode.Uri.file(path.join(file.newUri.fsPath, fl[0])),
           })),
         );
       }
