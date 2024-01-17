@@ -18,13 +18,19 @@ export default class CsprojPostProcessor {
     const applyVSCompatTransforms = workspace
       .getConfiguration(ConfigKey.Extension)
       .get(ConfigKey.VisualStudioCompatTransforms) as boolean;
+    const emptyTagsToExpand = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.EmptyTagExpansion) as string[];
 
-    let formattedCsproj = this.formatXmlLineEndings(csproj);
+    let formattedCsproj = this.expandEmptyTags(csproj, emptyTagsToExpand);
+
     if (applyVSCompatTransforms) {
       formattedCsproj = this.unescape(formattedCsproj);
       formattedCsproj = this.insertSpacesInClosingTags(formattedCsproj);
       formattedCsproj = this.insertTheBOM(formattedCsproj);
     }
+
+    formattedCsproj = this.formatXmlLineEndings(formattedCsproj);
 
     return formattedCsproj;
   }
@@ -32,6 +38,24 @@ export default class CsprojPostProcessor {
   // ========================================================
   // private methods
   // ========================================================
+
+  /**
+   * Expand select empty tags as indicated
+   * @param xml - the xml to expand empty tags in
+   * @param tagsToExpand - the tags to expand
+   * @returns - the xml with the empty tags expanded
+   */
+  private expandEmptyTags(xml: string, tagsToExpand: string[]): string {
+    tagsToExpand
+      .map((tag) => tag.trim())
+      .forEach((tag) => {
+        const regex = new RegExp(`(\\s*)<${tag}([^/]*)/>`, "g");
+        xml = xml.replace(regex, `$1<${tag}$2>$1</${tag}>`);
+      });
+
+    // '<foo bar="baz" />'.replace(/<foo([^\/]*)\/>/, '<foo $1> </foo>');
+    return xml;
+  }
 
   /**
    * Silly windows and its BOM. This method inserts the byte order mark
