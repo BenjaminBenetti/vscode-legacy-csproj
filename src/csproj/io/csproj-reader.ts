@@ -30,6 +30,7 @@ export default class CsprojReader {
       commentPropName: "#comment",
       ignoreAttributes: false,
       preserveOrder: true,
+      parseTagValue: false,
     });
 
     return xmlParser.parse(

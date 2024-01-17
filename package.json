@@ -24,6 +24,12 @@
     "configuration": {
       "title": "Legacy csproj",
       "properties": {
+        "legacy-csproj.visual-studio-compat-additional-transforms": {
+          "type": "boolean",
+          "title": "Additional XML Transforms for Visual Studio compatibility",
+          "description": "Apply additional transformations to the csproj xml to make it consistent with Visual Studio's csproj files. This is important when other developers are using Visual Studio to prevent the file from flip flopping",
+          "default": true
+        },
         "legacy-csproj.line-ending": {
           "type": "string",
           "title": "Line ending",
@@ -40,6 +46,15 @@
             "Use Unix line endings"
           ],
           "description": "Enable/disable this extension"
+        },
+        "legacy-csproj.empty-tag-expansion": {
+          "type": "array",
+          "title": "Empty Tags To Expand",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of tags that should be expanded to include a closing tag when empty. For some reason Visual Studio keeps expanding certain tags. Set this up as your project needs so that the csproj file doesn't flip flop between the two formats."
         }
       }
     }

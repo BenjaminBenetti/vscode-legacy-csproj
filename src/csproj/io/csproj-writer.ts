@@ -7,6 +7,7 @@ import CsprojReader from "./csproj-reader";
 import os from "os";
 import { ConfigKey } from "../../config/config-key";
 import { LineEnding } from "../../config/line-ending";
+import CsprojPostProcessor from "./csproj-post-processor";
 
 export default class CsprojWriter {
   private static readonly CSPROJ_WRITE_RETRY_TIMES: number = 8;
@@ -161,19 +162,21 @@ export default class CsprojWriter {
    * @param csproj - the csproj to write
    */
   private async writeCsprojRaw(csprojPath: string, csproj: any): Promise<void> {
+    const csprojPostProcessor = new CsprojPostProcessor();
     const xmlWriter = new XMLBuilder({
       attributeNamePrefix: "@_",
       commentPropName: "#comment",
       ignoreAttributes: false,
       format: true,
       preserveOrder: true,
+      suppressEmptyNode: true,
     });
 
     for (let i = 0; i < CsprojWriter.CSPROJ_WRITE_RETRY_TIMES; i++) {
       try {
         workspace.fs.writeFile(
           Uri.file(csprojPath),
-          Buffer.from(this.formatXmlLineEndings(xmlWriter.build(csproj))),
+          Buffer.from(csprojPostProcessor.process(xmlWriter.build(csproj))),
         );
         break;
       } catch (err) {
@@ -189,30 +192,6 @@ export default class CsprojWriter {
           `Failed to write to csproj after ${CsprojWriter.CSPROJ_WRITE_RETRY_TIMES} retries`,
         );
       }
-    }
-  }
-
-  /**
-   * Format the xml with the configured line endings
-   * @param xml - the xml to format
-   * @returns - the formatted xml
-   */
-  private formatXmlLineEndings(xml: string): string {
-    const lineEndings = workspace
-      .getConfiguration(ConfigKey.Extension)
-      .get(ConfigKey.LineEnding) as string;
-
-    switch (lineEndings) {
-      case LineEnding.Auto:
-        return xml.replace(/\n/g, os.EOL);
-      case LineEnding.LF:
-        return xml.replace(/\r\n/g, "\n");
-      case LineEnding.CRLF:
-        return xml.replace(/\n/g, "\r\n");
-      default:
-        throw new Error(
-          `Error parsing ${ConfigKey.LineEnding} extension setting`,
-        );
     }
   }
 }
