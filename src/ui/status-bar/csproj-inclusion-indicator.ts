@@ -1,7 +1,6 @@
 import vscode from "vscode";
 import CsprojService from "../../csproj/csproj-service";
 import path from "path";
-import { logger } from "../../logger";
 import { Command } from "../../command/command";
 
 export default class CsprojInclusionIndicator {

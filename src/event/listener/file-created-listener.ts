@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
 import AbstractEventListener from "./abstract-event-listener";
-import CsprojService from "../../csproj/csproj-service";
 import { logger } from "../../logger";
-import path from "path";
 import LegacyCsprojService from "../../legacy-csproj/legacy-csproj-service";
 
 export default class FileCreatedListener extends AbstractEventListener {

@@ -1,5 +1,3 @@
-import path from "path";
-import CsprojService from "../../csproj/csproj-service";
 import AbstractEventListener from "./abstract-event-listener";
 import * as vscode from "vscode";
 import { logger } from "../../logger";
