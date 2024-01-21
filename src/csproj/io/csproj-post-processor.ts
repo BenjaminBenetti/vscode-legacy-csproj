@@ -1,4 +1,3 @@
-import { workspace } from "vscode";
 import { ConfigKey } from "../../config/config-key";
 import { LineEnding } from "../../config/line-ending";
 import os from "os";
@@ -12,25 +11,25 @@ export default class CsprojPostProcessor {
    * Apply post-processing transforms to the csproj because visual studio
    * doesn't conform to the xml spec.
    * @param csproj - the csproj to process
+   * @param lineEndings - the line endings to use
+   * @param applyCompatTransforms - whether or not to apply visual studio compatibility transforms
    * @returns - the processed csproj
    */
-  public process(csproj: string): string {
-    const applyVSCompatTransforms = workspace
-      .getConfiguration(ConfigKey.Extension)
-      .get(ConfigKey.VisualStudioCompatTransforms) as boolean;
-    const emptyTagsToExpand = workspace
-      .getConfiguration(ConfigKey.Extension)
-      .get(ConfigKey.EmptyTagExpansion) as string[];
+  public process(
+    csproj: string,
+    lineEndings: LineEnding,
+    applyCompatTransforms: boolean = false,
+    emptyTagExpansions: string[] = [],
+  ): string {
+    let formattedCsproj = this.expandEmptyTags(csproj, emptyTagExpansions);
 
-    let formattedCsproj = this.expandEmptyTags(csproj, emptyTagsToExpand);
-
-    if (applyVSCompatTransforms) {
+    if (applyCompatTransforms) {
       formattedCsproj = this.unescape(formattedCsproj);
       formattedCsproj = this.insertSpacesInClosingTags(formattedCsproj);
       formattedCsproj = this.insertTheBOM(formattedCsproj);
     }
 
-    formattedCsproj = this.formatXmlLineEndings(formattedCsproj);
+    formattedCsproj = this.formatXmlLineEndings(formattedCsproj, lineEndings);
 
     return formattedCsproj;
   }
@@ -88,26 +87,23 @@ export default class CsprojPostProcessor {
    * @returns - the processed xml
    */
   private insertSpacesInClosingTags(xml: string): string {
-    return xml.replace(/\/>/g, " />");
+    return xml.replace(/([^\s])\/>/g, "$1 />");
   }
 
   /**
    * Format the xml with the configured line endings
    * @param xml - the xml to format
+   * @param lineEndings - the line endings to apply
    * @returns - the formatted xml
    */
-  private formatXmlLineEndings(xml: string): string {
-    const lineEndings = workspace
-      .getConfiguration(ConfigKey.Extension)
-      .get(ConfigKey.LineEnding) as string;
-
+  private formatXmlLineEndings(xml: string, lineEndings: LineEnding): string {
     switch (lineEndings) {
       case LineEnding.Auto:
-        return xml.replace(/\n/g, os.EOL);
+        return xml.replace(/\r*\n/g, os.EOL);
       case LineEnding.LF:
-        return xml.replace(/\r\n/g, "\n");
+        return xml.replace(/\r*\n/g, "\n");
       case LineEnding.CRLF:
-        return xml.replace(/\n/g, "\r\n");
+        return xml.replace(/\r*\n/g, "\r\n");
       default:
         throw new Error(
           `Error parsing ${ConfigKey.LineEnding} extension setting`,

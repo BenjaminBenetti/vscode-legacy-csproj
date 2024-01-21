@@ -4,10 +4,9 @@ import CsprojInclude from "../meta/csproj-include";
 import { Uri, workspace } from "vscode";
 import { logger } from "../../logger";
 import CsprojReader from "./csproj-reader";
-import os from "os";
+import CsprojPostProcessor from "./csproj-post-processor";
 import { ConfigKey } from "../../config/config-key";
 import { LineEnding } from "../../config/line-ending";
-import CsprojPostProcessor from "./csproj-post-processor";
 
 export default class CsprojWriter {
   private static readonly CSPROJ_WRITE_RETRY_TIMES: number = 8;
@@ -171,12 +170,28 @@ export default class CsprojWriter {
       preserveOrder: true,
       suppressEmptyNode: true,
     });
+    const lineEndings = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.LineEnding) as LineEnding;
+    const applyVSCompatTransforms = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.VisualStudioCompatTransforms) as boolean;
+    const emptyTagsToExpand = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.EmptyTagExpansion) as string[];
 
     for (let i = 0; i < CsprojWriter.CSPROJ_WRITE_RETRY_TIMES; i++) {
       try {
         workspace.fs.writeFile(
           Uri.file(csprojPath),
-          Buffer.from(csprojPostProcessor.process(xmlWriter.build(csproj))),
+          Buffer.from(
+            csprojPostProcessor.process(
+              xmlWriter.build(csproj),
+              lineEndings,
+              applyVSCompatTransforms,
+              emptyTagsToExpand,
+            ),
+          ),
         );
         break;
       } catch (err) {
