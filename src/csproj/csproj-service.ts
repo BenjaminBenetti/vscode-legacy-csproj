@@ -80,6 +80,29 @@ export default class CsprojService {
   }
 
   /**
+   * Check if the given file is in the nearest csproj to that file
+   * @param filePath - the file to check
+   * @returns - true if the file is in the csproj. false otherwise, including if there is no csproj above the file
+   */
+  public async isFileInCsproj(filePath: string): Promise<boolean> {
+    const csprojReader = new CsprojReader();
+    const includeTypeService = new CsprojIncludeTypeService();
+    const csproj = await this.findNearestCsproj(filePath);
+
+    if (csproj) {
+      const projectMeta = await csprojReader.readCsproj(csproj);
+      return projectMeta.containsInclude(
+        new CsprojInclude(
+          path.relative(path.dirname(csproj), filePath),
+          includeTypeService.getIncludeTypeForFile(filePath),
+        ),
+      );
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Flush any pending csproj changes to disk
    */
   public async flush(): Promise<void> {

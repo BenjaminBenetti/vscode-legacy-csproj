@@ -20,7 +20,12 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "command": "legacy-csproj.run-action",
+        "title": "Legacy Csproj: Current File Action"
+      }
+    ],
     "configuration": {
       "title": "Legacy csproj",
       "properties": {

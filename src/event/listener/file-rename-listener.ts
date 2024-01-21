@@ -3,6 +3,7 @@ import CsprojService from "../../csproj/csproj-service";
 import AbstractEventListener from "./abstract-event-listener";
 import * as vscode from "vscode";
 import { logger } from "../../logger";
+import LegacyCsprojService from "../../legacy-csproj/legacy-csproj-service";
 
 export default class FileRenameListener extends AbstractEventListener {
   // ========================================================
@@ -11,9 +12,13 @@ export default class FileRenameListener extends AbstractEventListener {
 
   // listen for events
   public bind(): void {
+    const legacyCsprojService = new LegacyCsprojService();
+
     this.disposable = vscode.workspace.onWillRenameFiles(
       async (fileRenameEvent: vscode.FileWillRenameEvent) => {
-        fileRenameEvent.waitUntil(this.renameFiles(fileRenameEvent.files));
+        fileRenameEvent.waitUntil(
+          legacyCsprojService.renameProjectFiles(fileRenameEvent.files),
+        );
       },
     );
 
@@ -26,49 +31,5 @@ export default class FileRenameListener extends AbstractEventListener {
   // stop listening for events
   public unbind(): void {
     this.disposable?.dispose();
-  }
-
-  // ========================================================
-  // private methods
-  // ========================================================
-
-  /**
-   * Rename the given files in the csproj
-   * @param files - the files to rename
-   */
-  private async renameFiles(
-    files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
-  ): Promise<void> {
-    try {
-      const csprojService = new CsprojService(true);
-      await this.recursiveRename(files, csprojService);
-      csprojService.flush();
-    } catch (error) {
-      logger.error(`Unexpected error while renaming files ${error}`);
-    }
-  }
-
-  private async recursiveRename(
-    files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[],
-    csprojService: CsprojService,
-  ): Promise<void> {
-    for (const file of files) {
-      const fileStat = await vscode.workspace.fs.stat(file.oldUri);
-
-      if (fileStat.type === vscode.FileType.File) {
-        await csprojService.removeFileFromCsproj(file.oldUri.fsPath);
-        await csprojService.addFileToCsproj(file.newUri.fsPath);
-      } else if (fileStat.type === vscode.FileType.Directory) {
-        const files = await vscode.workspace.fs.readDirectory(file.oldUri);
-
-        await this.recursiveRename(
-          files.map((fl) => ({
-            oldUri: vscode.Uri.parse(path.join(file.oldUri.fsPath, fl[0])),
-            newUri: vscode.Uri.parse(path.join(file.newUri.fsPath, fl[0])),
-          })),
-          csprojService,
-        );
-      }
-    }
   }
 }
