@@ -52,6 +52,9 @@ suite("csproj-reader", () => {
     const compileIncludes = csprojMeta.includes.filter(
       (include) => include.type === CsprojIncludeType.Compile,
     );
+    const tsCompileIncludes = csprojMeta.includes.filter(
+      (include) => include.type === CsprojIncludeType.TSCompile,
+    );
 
     assert.strictEqual(csprojMeta.toolVersion, "14.0");
     assert.strictEqual(csprojMeta.sdk, null);
@@ -68,5 +71,11 @@ suite("csproj-reader", () => {
       "csproj contains 19 compile statements",
     );
     assert.equal(compileIncludes[0].include, "App_Start\\NinjectWebCommon.cs");
+    assert.equal(
+      tsCompileIncludes.length,
+      1,
+      "csproj contains 1 typescript compile statements",
+    );
+    assert.equal(tsCompileIncludes[0].include, "ts-file.ts");
   });
 });

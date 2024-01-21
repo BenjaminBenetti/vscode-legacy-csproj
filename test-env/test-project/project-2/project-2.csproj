@@ -149,6 +149,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IEmployeeService.cs" />
   </ItemGroup>
+  <ItemGroup> 
+    <TypeScriptCompile Include="ts-file.ts" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
     <None Include="Web.Debug.config">

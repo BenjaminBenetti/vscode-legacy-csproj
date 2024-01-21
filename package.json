@@ -24,16 +24,47 @@
     "configuration": {
       "title": "Legacy csproj",
       "properties": {
-        "legacy-csproj.visual-studio-compat-additional-transforms": {
-          "type": "boolean",
-          "title": "Additional XML Transforms for Visual Studio compatibility",
-          "description": "Apply additional transformations to the csproj xml to make it consistent with Visual Studio's csproj files. This is important when other developers are using Visual Studio to prevent the file from flip flopping",
-          "default": true
+        "legacy-csproj.file-tag-mappings": {
+          "title": "File Tag Mappings",
+          "description": "Associations between file extensions and the csproj xml tags that should be used to include the file in the project",
+          "order": 0,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "extension": {
+                "type": "string",
+                "description": "The file extension to associate with the tag",
+                "examples": [
+                  ".cs"
+                ]
+              },
+              "tag": {
+                "type": "string",
+                "description": "The csproj xml tag to use for the file",
+                "examples": [
+                  "Compile"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false,
+          "default": [
+            {
+              "extension": ".cs",
+              "tag": "Compile"
+            },
+            {
+              "extension": ".ts",
+              "tag": "TypeScriptCompile"
+            }
+          ]
         },
         "legacy-csproj.line-ending": {
           "type": "string",
           "title": "Line ending",
           "markdownDescription": "The line ending to use when updating csproj files.",
+          "order": 1,
           "enum": [
             "auto",
             "crlf",
@@ -47,9 +78,17 @@
           ],
           "description": "Enable/disable this extension"
         },
+        "legacy-csproj.visual-studio-compat-additional-transforms": {
+          "type": "boolean",
+          "title": "Additional XML Transforms for Visual Studio compatibility",
+          "description": "Apply additional transformations to the csproj xml to make it consistent with Visual Studio's csproj files. This is important when other developers are using Visual Studio to prevent the file from flip flopping",
+          "order": 2,
+          "default": true
+        },
         "legacy-csproj.empty-tag-expansion": {
           "type": "array",
           "title": "Empty Tags To Expand",
+          "order": 3,
           "default": [],
           "items": {
             "type": "string"

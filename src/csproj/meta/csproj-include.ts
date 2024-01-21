@@ -7,7 +7,7 @@ export default class CsprojInclude {
 
   public constructor(
     private readonly _include: string,
-    private readonly _type: CsprojIncludeType,
+    private readonly _type: CsprojIncludeType | string,
   ) {}
 
   // ========================================================
@@ -18,7 +18,7 @@ export default class CsprojInclude {
     return this._include;
   }
 
-  public get type(): CsprojIncludeType {
+  public get type(): CsprojIncludeType | string {
     return this._type;
   }
 }
