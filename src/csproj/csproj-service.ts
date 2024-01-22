@@ -6,6 +6,7 @@ import CsprojWriter from "./io/csproj-writer";
 import CsprojIncludeTypeService from "./meta/csproj-include-type-service";
 import { logger } from "../logger";
 import CsprojReader from "./io/csproj-reader";
+import CsprojMeta from "./meta/csproj-meta";
 
 export default class CsprojService {
   private _csprojWriterCache: CsprojWriter | null = null;
@@ -77,6 +78,16 @@ export default class CsprojService {
         logger.warn("SDK style project detected. Not removing file");
       }
     }
+  }
+
+  /**
+   * Read the given csproj file
+   * @param csprojPath - the path to the csproj file
+   * @returns - the csproj meta data
+   */
+  public async readCsproj(csprojPath: string): Promise<CsprojMeta> {
+    const csprojReader = new CsprojReader();
+    return await csprojReader.readCsproj(csprojPath);
   }
 
   /**

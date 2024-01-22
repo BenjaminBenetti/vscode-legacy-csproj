@@ -8,6 +8,9 @@ import FileRenameListener from "./event/listener/file-rename-listener";
 import ActiveTextEditorListener from "./event/listener/active-text-editor-listener";
 import RunActionCommand from "./command/run-action-command";
 import CsprojInclusionIndicator from "./ui/status-bar/csproj-inclusion-indicator";
+import AddFileCommand from "./command/add-file-command";
+import RemoveFileCommand from "./command/remove-file-command";
+import SyncFilesCommand from "./command/sync-files-command";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -27,6 +30,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // === commands ===
   new RunActionCommand(csprojInclusionIndicator, context).bind();
+  new AddFileCommand(csprojInclusionIndicator, context).bind();
+  new RemoveFileCommand(csprojInclusionIndicator, context).bind();
+  new SyncFilesCommand(csprojInclusionIndicator, context).bind();
 
   logger.info("boot-up complete");
 }

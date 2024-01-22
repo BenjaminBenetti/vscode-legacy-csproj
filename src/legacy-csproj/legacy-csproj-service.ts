@@ -4,6 +4,7 @@ import RemoveFilesOperation from "./operations/remove-files-operation";
 import RenameFilesOperation, {
   RenameFile,
 } from "./operations/rename-files-operation";
+import SyncFolderOperation from "./operations/sync-folder-operation";
 
 export default class LegacyCsprojService {
   // ========================================================
@@ -32,5 +33,15 @@ export default class LegacyCsprojService {
    */
   public async renameProjectFiles(files: readonly RenameFile[]): Promise<void> {
     await new RenameFilesOperation().renameProjectFiles(files);
+  }
+
+  /**
+   * Sync a the project with the indicated files.
+   *  This will add any files on disk that are not in the project to the project,
+   *  and remove any files that are in the project but not on disk.
+   * @param folder - the folder to sync
+   */
+  public async syncProjectFiles(files: Uri[]): Promise<void> {
+    await new SyncFolderOperation().syncProjectFiles(files);
   }
 }

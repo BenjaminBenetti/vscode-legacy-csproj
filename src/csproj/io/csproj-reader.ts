@@ -2,8 +2,10 @@ import { Uri, workspace } from "vscode";
 import CsprojMeta from "../meta/csproj-meta";
 import { XMLParser } from "fast-xml-parser";
 import CsprojRawToCsprojMetaConverter from "../converter/csproj-raw-to-csproj-meta-converter";
+import { logger } from "../../logger";
 
 export default class CsprojReader {
+  private readonly CsprojReadRetry = 3;
   // ========================================================
   // public methods
   // ========================================================
@@ -33,8 +35,23 @@ export default class CsprojReader {
       parseTagValue: false,
     });
 
-    return xmlParser.parse(
-      (await workspace.fs.readFile(Uri.file(csprojPath))).toString(),
-    );
+    for (let i = 0; i < this.CsprojReadRetry; i++) {
+      try {
+        const csproj = xmlParser.parse(
+          (await workspace.fs.readFile(Uri.file(csprojPath))).toString(),
+        );
+
+        if (csproj && csproj.length > 0) {
+          return csproj;
+        } else {
+          throw new Error("Failed to read csproj");
+        }
+      } catch (error) {
+        if (i === this.CsprojReadRetry - 1) {
+          logger.error("To many failed attempts to read csproj");
+          throw error;
+        }
+      }
+    }
   }
 }

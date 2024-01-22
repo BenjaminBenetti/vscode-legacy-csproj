@@ -24,8 +24,36 @@
       {
         "command": "legacy-csproj.run-action",
         "title": "Legacy Csproj: Current File Action"
+      },
+      {
+        "command": "legacy-csproj.add-file",
+        "title": "Add to Csproj",
+        "category": "explorer/context"
+      },
+      {
+        "command": "legacy-csproj.remove-file",
+        "title": "Remove from Csproj",
+        "category": "explorer/context"
+      },
+      {
+        "command": "legacy-csproj.sync-files",
+        "title": "Sync with Csproj",
+        "category": "explorer/context"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "legacy-csproj.add-file"
+        },
+        {
+          "command": "legacy-csproj.remove-file"
+        },
+        {
+          "command": "legacy-csproj.sync-files"
+        }
+      ]
+    },
     "configuration": {
       "title": "Legacy csproj",
       "properties": {
