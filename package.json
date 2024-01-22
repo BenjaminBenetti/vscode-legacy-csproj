@@ -2,7 +2,7 @@
   "name": "vscode-legacy-csproj",
   "displayName": "Legacy csproj",
   "description": "Automatically keeps legacy csproj files up to date as you add and remove files from your project.",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "publisher": "CanadianCommander",
   "repository": {
     "type": "git",
