@@ -14,12 +14,19 @@ This vscode extension automatically keeps your legacy csproj (non sdk project) u
 
 # Development
 
-## Pre-requisites
+## Try it on the web
 
-- [Node.js](https://nodejs.org/en/) v18 or higher
-- [Visual Studio Code](https://code.visualstudio.com/)
+Simply select the green "Code" button in the top right of the GitHub repo page.
+Then select "Codespaces" and "Open in Codespace".
 
 ## Setup
+
+Open the project in a `devcontainer` compatible IDE like vscode.
+When prompted to open the project in a container select `Reopen in Container`.
+
+You're ready to dev! 🎉
+
+## Build & Run
 
 install dependencies
 
