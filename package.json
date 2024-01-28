@@ -90,6 +90,10 @@
             {
               "extension": ".ts",
               "tag": "TypeScriptCompile"
+            },
+            {
+              "extension": ".tsx",
+              "tag": "TypeScriptCompile"
             }
           ]
         },
