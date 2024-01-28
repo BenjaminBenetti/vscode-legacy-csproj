@@ -33,6 +33,7 @@ export default class CsprojReader {
       ignoreAttributes: false,
       preserveOrder: true,
       parseTagValue: false,
+      trimValues: false,
     });
 
     for (let i = 0; i < this.CsprojReadRetry; i++) {

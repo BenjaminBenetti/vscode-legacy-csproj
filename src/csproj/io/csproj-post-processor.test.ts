@@ -18,6 +18,11 @@ suite("CsprojPostProcessor", () => {
       LineEnding.LF,
     );
 
+    assert.match(
+      processedCsproj,
+      /(<\?xml[^>]*>)\n/,
+      "xml tag should have a newline at the end",
+    );
     assert.doesNotMatch(processedCsproj, /\r\n/);
   });
 
@@ -31,6 +36,11 @@ suite("CsprojPostProcessor", () => {
       LineEnding.CRLF,
     );
 
+    assert.match(
+      processedCsproj,
+      /(<\?xml[^>]*>)\r\n/,
+      "xml tag should have a newline at the end. CRLF",
+    );
     assert.match(processedCsproj, /\r\n/);
   });
 

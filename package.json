@@ -93,11 +93,18 @@
             }
           ]
         },
+        "legacy-csproj.indent-spaces": {
+          "type": "number",
+          "title": "Indent",
+          "markdownDescription": "The indent to use when there is not reference indent available.",
+          "order": 1,
+          "default": 2
+        },
         "legacy-csproj.line-ending": {
           "type": "string",
           "title": "Line ending",
           "markdownDescription": "The line ending to use when updating csproj files.",
-          "order": 1,
+          "order": 2,
           "enum": [
             "auto",
             "crlf",
@@ -108,20 +115,19 @@
             "Use the line endings of your OS",
             "Use Windows line endings",
             "Use Unix line endings"
-          ],
-          "description": "Enable/disable this extension"
+          ]
         },
         "legacy-csproj.visual-studio-compat-additional-transforms": {
           "type": "boolean",
           "title": "Additional XML Transforms for Visual Studio compatibility",
           "description": "Apply additional transformations to the csproj xml to make it consistent with Visual Studio's csproj files. This is important when other developers are using Visual Studio to prevent the file from flip flopping",
-          "order": 2,
+          "order": 3,
           "default": true
         },
         "legacy-csproj.empty-tag-expansion": {
           "type": "array",
           "title": "Empty Tags To Expand",
-          "order": 3,
+          "order": 4,
           "default": [],
           "items": {
             "type": "string"

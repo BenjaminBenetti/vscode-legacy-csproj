@@ -14,7 +14,7 @@ suite("csproj-writer", () => {
       },
     ];
 
-    await csprojWriter.addInsertToCsproj(
+    await csprojWriter.addIncludeToCsproj(
       new CsprojInclude("test.cs", CsprojIncludeType.Compile),
       csproj,
     );
@@ -42,7 +42,7 @@ suite("csproj-writer", () => {
       },
     ];
 
-    await csprojWriter.addInsertToCsproj(
+    await csprojWriter.addIncludeToCsproj(
       new CsprojInclude("test.cshtml", CsprojIncludeType.Content),
       csproj,
     );
@@ -82,7 +82,7 @@ suite("csproj-writer", () => {
       },
     ];
 
-    csprojWriter.addInsertToCsproj(
+    csprojWriter.addIncludeToCsproj(
       new CsprojInclude("foo.cshtml", CsprojIncludeType.Content),
       csproj,
     );
@@ -129,13 +129,17 @@ suite("csproj-writer", () => {
       },
     ];
 
-    csprojWriter.addInsertToCsproj(
+    csprojWriter.addIncludeToCsproj(
       new CsprojInclude("test.cs", CsprojIncludeType.Compile),
       csproj,
     );
 
     // should add to the biggest compile group (the first one)
-    assert.equal(csproj[0].Project[0].ItemGroup.length, 3);
+    assert.equal(
+      csproj[0].Project[0].ItemGroup.filter((item: any) => !item["#text"])
+        .length,
+      3,
+    );
     assert.equal(csproj[0].Project[1].ItemGroup.length, 0);
     assert.equal(
       csproj[0].Project[0].ItemGroup[0][":@"]["@_Include"],
@@ -143,7 +147,7 @@ suite("csproj-writer", () => {
       "existing items should be preserved",
     );
     assert.equal(
-      csproj[0].Project[0].ItemGroup[2][":@"]["@_Include"],
+      csproj[0].Project[0].ItemGroup[3][":@"]["@_Include"],
       "test.cs",
       "new item should be added to the end of the biggest group",
     );
@@ -186,7 +190,7 @@ suite("csproj-writer", () => {
       },
     ];
 
-    csprojWriter.addInsertToCsproj(
+    csprojWriter.addIncludeToCsproj(
       new CsprojInclude("o-ya.cshtml", CsprojIncludeType.Content),
       csproj,
     );
@@ -208,7 +212,7 @@ suite("csproj-writer", () => {
       "existing items should be preserved",
     );
     assert.equal(
-      csproj[0].Project[1].ItemGroup[1][":@"]["@_Include"],
+      csproj[0].Project[1].ItemGroup[2][":@"]["@_Include"],
       "o-ya.cshtml",
       "new item should be added to the end of the biggest group",
     );

@@ -35,7 +35,7 @@ export default class CsprojWriter {
   ) {
     const csproj = await this.loadCsprojRaw(csprojPath);
 
-    this.addInsertToCsproj(include, csproj);
+    this.addIncludeToCsproj(include, csproj);
 
     if (!this._buffer) {
       await this.writeCsprojRaw(csprojPath, csproj);
@@ -75,7 +75,8 @@ export default class CsprojWriter {
    * @param include - the include to add
    * @param csproj - the raw csproj to modify
    */
-  public addInsertToCsproj(include: CsprojInclude, csproj: any): void {
+  public addIncludeToCsproj(include: CsprojInclude, csproj: any): void {
+    const configIndent = this.buildIndentString();
     const csprojMeta = new CsprojRawToCsprojMetaConverter().convert(csproj);
 
     //if the include already exists, do nothing
@@ -102,14 +103,33 @@ export default class CsprojWriter {
       }, null);
 
     // if there is no item group, create one
+    let indentation = `\n${configIndent}`;
     if (!biggestItemGroup) {
-      biggestItemGroup = [];
-      csproj.Project.push(biggestItemGroup);
+      biggestItemGroup = [{ "#text": `\n${configIndent}` }];
+      const project = csproj.find((node: any) => !!node["Project"]).Project;
+      project.push({ "#text": configIndent });
+      project.push({ ItemGroup: biggestItemGroup });
+      project.push({ "#text": "\n" });
     }
 
+    // adjust indent level to match other items.
+    const textItem = biggestItemGroup.findLast(
+      (bigItem: any) => !!bigItem["#text"],
+    );
+    if (textItem) {
+      indentation = textItem["#text"];
+    }
+
+    // add new item
+    biggestItemGroup.push({
+      "#text": configIndent,
+    });
     biggestItemGroup.push({
       ":@": { "@_Include": include.include },
       [include.type]: [],
+    });
+    biggestItemGroup.push({
+      "#text": indentation,
     });
   }
 
@@ -130,7 +150,16 @@ export default class CsprojWriter {
         );
 
         if (deleteIndex !== -1) {
-          itemGroup.splice(deleteIndex, 1);
+          let delIndex = deleteIndex;
+          let deleteCount = 1;
+
+          // delete any text nodes that might proceed the include
+          if (deleteIndex > 0 && itemGroup[deleteIndex - 1]["#text"]) {
+            delIndex--;
+            deleteCount++;
+          }
+
+          itemGroup.splice(delIndex, deleteCount);
         }
       });
   }
@@ -166,7 +195,7 @@ export default class CsprojWriter {
       attributeNamePrefix: "@_",
       commentPropName: "#comment",
       ignoreAttributes: false,
-      format: true,
+      format: false,
       preserveOrder: true,
       suppressEmptyNode: true,
     });
@@ -208,5 +237,17 @@ export default class CsprojWriter {
         );
       }
     }
+  }
+
+  /**
+   * Build an indent string based on the user's settings
+   * @returns - the indent string (string of spaces)
+   */
+  private buildIndentString(): string {
+    const indentSetting = workspace
+      .getConfiguration(ConfigKey.Extension)
+      .get(ConfigKey.Indent) as number;
+
+    return Array.from({ length: indentSetting }, () => " ").join("");
   }
 }

@@ -22,6 +22,7 @@ export default class CsprojPostProcessor {
     emptyTagExpansions: string[] = [],
   ): string {
     let formattedCsproj = this.expandEmptyTags(csproj, emptyTagExpansions);
+    formattedCsproj = this.fixXmlTagNewline(formattedCsproj);
 
     if (applyCompatTransforms) {
       formattedCsproj = this.unescape(formattedCsproj);
@@ -37,6 +38,15 @@ export default class CsprojPostProcessor {
   // ========================================================
   // private methods
   // ========================================================
+
+  /**
+   * Fix the newline on the <xml> tag getting removed by the xml parser
+   * @param xml - the xml to fix
+   * @returns - the fixed xml
+   */
+  private fixXmlTagNewline(xml: string): string {
+    return xml.replace(/(<\?xml[^>]*>)\n*/, "$1\n");
+  }
 
   /**
    * Expand select empty tags as indicated
@@ -63,7 +73,10 @@ export default class CsprojPostProcessor {
    * @returns - the xml with the BOM inserted
    */
   private insertTheBOM(xml: string): string {
-    return "\ufeff" + xml;
+    if (!xml.startsWith("\ufeff")) {
+      return "\ufeff" + xml;
+    }
+    return xml;
   }
 
   /**
