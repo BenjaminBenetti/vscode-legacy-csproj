@@ -11,6 +11,8 @@ import CsprojMeta from "./meta/csproj-meta";
 export default class CsprojService {
   private _csprojWriterCache: CsprojWriter | null = null;
   private _isSdkStyleProjectCache: boolean | null = null;
+  private _csprojLocator: CsprojLocator;
+
   // ========================================================
   // public methods
   // ========================================================
@@ -20,7 +22,9 @@ export default class CsprojService {
    * @param _buffer - [optional default false] whether or not to buffer the csproj in memory.
    *  You must call flush() to write the csproj to disk
    */
-  constructor(private _buffer: boolean = false) {}
+  constructor(private _buffer: boolean = false) {
+    this._csprojLocator = new CsprojLocator();
+  }
 
   /**
    * add the given file to the csproj file on disk
@@ -131,10 +135,11 @@ export default class CsprojService {
     );
 
     if (workspacePath) {
-      return await new CsprojLocator().findNearestCsproj(
+      const proj = await this._csprojLocator.findNearestCsproj(
         path.dirname(filePath),
         workspacePath,
       );
+      return proj;
     }
     return null;
   }
