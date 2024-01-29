@@ -5,7 +5,7 @@ Do you work with other developers who use Visual Studio? Well then this extensio
 
 This vscode extension automatically keeps your legacy csproj (non sdk project) up to date as you add and remove files.
 
-<img src="./doc/readme-video.gif?raw=true">
+<img src="./doc/readme-video_2.gif?raw=true">
 
 # Features
 
