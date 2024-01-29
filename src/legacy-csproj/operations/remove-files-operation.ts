@@ -2,6 +2,7 @@ import CsprojService from "../../csproj/csproj-service";
 import { logger } from "../../logger";
 import vscode from "vscode";
 import path from "path";
+import CsprojIgnoreService from "../../ignore/csproj-ignore-service";
 
 export default class RemoveFilesOperation {
   // ========================================================
@@ -17,7 +18,8 @@ export default class RemoveFilesOperation {
   ): Promise<void> {
     try {
       const csprojService = new CsprojService(true);
-      await this.recursiveRemove(files, csprojService);
+      const ignoreService = new CsprojIgnoreService();
+      await this.recursiveRemove(files, csprojService, ignoreService);
       csprojService.flush();
     } catch (error) {
       logger.error(`Unexpected error while deleting files ${error}`);
@@ -29,13 +31,24 @@ export default class RemoveFilesOperation {
   // private methods
   // ========================================================
 
+  /**
+   * recursively remove the given files from the csproj
+   * @param files - the files to remove
+   * @param csprojService - the csproj service to use
+   * @param ignoreService - the ignore service to use
+   */
   private async recursiveRemove(
     files: readonly vscode.Uri[],
     csprojService: CsprojService,
+    ignoreService: CsprojIgnoreService,
   ): Promise<void> {
     for (const file of files) {
-      const fileStat = await vscode.workspace.fs.stat(file);
+      if (await ignoreService.isFileIgnored(file.fsPath)) {
+        logger.info(`Ignoring remove of ${file.fsPath}`);
+        continue;
+      }
 
+      const fileStat = await vscode.workspace.fs.stat(file);
       if (fileStat.type === vscode.FileType.File) {
         await csprojService.removeFileFromCsproj(file.fsPath);
       } else if (fileStat.type === vscode.FileType.Directory) {
@@ -44,6 +57,7 @@ export default class RemoveFilesOperation {
         await this.recursiveRemove(
           files.map((fl) => vscode.Uri.file(path.join(file.fsPath, fl[0]))),
           csprojService,
+          ignoreService,
         );
       }
     }

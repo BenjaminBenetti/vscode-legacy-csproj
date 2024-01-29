@@ -3,6 +3,7 @@ import { FileType, Uri } from "vscode";
 import { logger } from "../../logger";
 import CsprojService from "../../csproj/csproj-service";
 import path from "path";
+import CsprojIgnoreService from "../../ignore/csproj-ignore-service";
 
 export default class SyncFolderOperation {
   // ========================================================
@@ -18,7 +19,8 @@ export default class SyncFolderOperation {
   public async syncProjectFiles(files: Uri[]): Promise<void> {
     try {
       const csprojService = new CsprojService(true);
-      await this.recursiveSync(files, csprojService);
+      const ignoreService = new CsprojIgnoreService();
+      await this.recursiveSync(files, csprojService, ignoreService);
       csprojService.flush();
     } catch (error) {
       logger.error(`Unexpected error while syncing files ${error}`);
@@ -34,22 +36,27 @@ export default class SyncFolderOperation {
    * Sync the csproj with the given files recursively
    * @param files - the files to sync
    * @param csprojService - the csproj service to use
+   * @param ignoreService - the ignore service to use
    */
   private async recursiveSync(
     files: Uri[],
     csprojService: CsprojService,
+    ignoreService: CsprojIgnoreService,
   ): Promise<void> {
     for (const file of files) {
       const fileType = (await vscode.workspace.fs.stat(file)).type;
 
       if (fileType === FileType.File) {
-        await csprojService.addFileToCsproj(file.fsPath);
+        if (!(await ignoreService.isFileIgnored(file.fsPath))) {
+          await csprojService.addFileToCsproj(file.fsPath);
+        }
       } else if (fileType === FileType.Directory) {
         const dirFiles = await vscode.workspace.fs.readDirectory(file);
 
         await this.recursiveSync(
           dirFiles.map((fl) => vscode.Uri.file(path.join(file.fsPath, fl[0]))),
           csprojService,
+          ignoreService,
         );
 
         // remove any files from the csproj that are not in the directory
@@ -61,13 +68,6 @@ export default class SyncFolderOperation {
             const includePath = path.normalize(
               path.resolve(path.dirname(csprojPath), include.include),
             );
-
-            if (includePath.match(/fake/)) {
-              console.log("=========================");
-              console.log(includePath);
-              console.log(file.fsPath);
-              console.log(path.dirname(includePath));
-            }
 
             if (
               path.dirname(includePath) === file.fsPath &&

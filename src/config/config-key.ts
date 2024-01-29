@@ -5,4 +5,5 @@ export enum ConfigKey {
   VisualStudioCompatTransforms = "visual-studio-compat-additional-transforms",
   EmptyTagExpansion = "empty-tag-expansion",
   FileTagMappings = "file-tag-mappings",
+  IgnoreFilesBy = "ignore-files-by",
 }
