@@ -5,7 +5,7 @@ Do you work with other developers who use Visual Studio? Well then this extensio
 
 This vscode extension automatically keeps your legacy csproj (non sdk project) up to date as you add and remove files.
 
-<img src="./doc/readme-video_2.gif?raw=true">
+![Demo Video](./doc/readme-video.gif)
 
 # Features
 
@@ -17,6 +17,18 @@ This vscode extension automatically keeps your legacy csproj (non sdk project) u
 - Sync csproj with file system (add missing files, remove files that don't exist on disk)
 - Indicator on status bar showing if the current file is in the csproj.
 - `.gitignore` is respected (configurable).
+
+# Installation
+
+Currently you can find the extension packaged as a `.vsix` file
+on the [Release Page](https://github.com/CanadianCommander/vscode-legacy-csproj/releases).
+
+### Installing from a `.vsix` file
+
+Open `vscode` and select the `Extensions` icon in the left hand side bar.
+Then select the `...` in the top right corner of the extension list.
+Finally select `Install from VSIX...` and select the `.vsix` file you downloaded
+from the release page.
 
 # Development
 
