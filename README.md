@@ -5,12 +5,18 @@ Do you work with other developers who use Visual Studio? Well then this extensio
 
 This vscode extension automatically keeps your legacy csproj (non sdk project) up to date as you add and remove files.
 
+![Demo Video](./doc/readme-video.gif)
+
 # Features
 
-- When adding files the csproj will automatically be updated.
-- When deleting files or directories the csproj will automatically be updated.
-- When renaming files the csproj will automatically be updated.
-- When moving files the csproj will automatically be updated.
+- When performing normal operations in the file explorer (add, rename, delete, copy) this extension will automatically update the appropriate csproj file.
+- Produces a csproj that is compatible Visual Studio. That is
+  to say, if some developers use Visual Studio and others use vscode, the csproj won't constantly reformat
+  as developers switch between the two, causing unnecessary git changes.
+- Context menu actions to manually add, and remove files from the csproj
+- Sync csproj with file system (add missing files, remove files that don't exist on disk)
+- Indicator on status bar showing if the current file is in the csproj.
+- `.gitignore` is respected (configurable).
 
 # Development
 
